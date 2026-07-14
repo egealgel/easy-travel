@@ -1,4 +1,4 @@
-# 🧭 Easy Travel — Yapay Zeka Gezi Senaryosu Planlayıcı
+# easyTravel — Yapay Zeka Destekli Gezi Senaryosu Planlayıcı
 
 Bir şehir yaz → yapay zeka (Claude) sana **4-5 temalı gezi senaryosu** çıkarsın →
 her senaryodaki yerler **en kısa rotaya göre 1-2-3 diye numaralanıp** haritada
