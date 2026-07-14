@@ -41,16 +41,6 @@ npx netlify dev           # http://localhost:8888
 
 > `netlify dev`, `.env` dosyasını otomatik okur ve `/api/generate` yönlendirmesini yerelde de çalıştırır.
 
-## Netlify'a deploy
-
-1. Projeyi GitHub'a it.
-2. Netlify → **Add new site → Import from GitHub** ile depoyu seç.
-3. Build ayarları: **Build command** boş, **Publish directory** `.`, **Functions directory** `netlify/functions` (bunlar zaten `netlify.toml`'da tanımlı).
-4. **Site settings → Environment variables** kısmına ekle:
-   - `ANTHROPIC_API_KEY` = kendi Claude API anahtarın
-   - (opsiyonel) `TRAVEL_MODEL` = `claude-haiku-4-5` — ücretsiz plandaki ~10 sn fonksiyon limitine takılırsan daha hızlı/ucuz model.
-5. Deploy et. Canlı URL'i portföyüne ekle.
-
 ## Notlar
 
 - **Ücretsiz Netlify limiti:** Senkron fonksiyonlar ~10 sn'de kesilir. Varsayılan model `claude-opus-4-8` en kaliteli sonucu verir ama bazen yavaş olabilir; zaman aşımı görürsen `TRAVEL_MODEL=claude-haiku-4-5` yeterince hızlıdır.
