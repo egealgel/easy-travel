@@ -1,0 +1,11 @@
+# Netlify yapılandırması — statik site + serverless fonksiyon
+[build]
+  # Ayrı bir build adımı yok; statik dosyalar kök dizinde.
+  publish = "."
+  functions = "netlify/functions"
+
+# Frontend /api/generate'e istek atıyor; onu fonksiyona yönlendir.
+[[redirects]]
+  from = "/api/generate"
+  to = "/.netlify/functions/generate"
+  status = 200

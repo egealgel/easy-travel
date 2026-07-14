@@ -1,0 +1,13 @@
+{
+  "name": "easy-travel",
+  "version": "1.0.0",
+  "description": "Bir şehir yaz, yapay zeka temalı gezi senaryoları çıkarsın; yerler optimal sıraya göre numaralanıp Google My Maps'e aktarılabilen bir KML olarak indirilsin.",
+  "type": "module",
+  "scripts": {
+    "dev": "netlify dev",
+    "start": "netlify dev"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0"
+  }
+}

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Easy Travel — Yapay Zeka Gezi Planlayıcı</title>
+    <meta
+      name="description"
+      content="Bir şehir yaz, yapay zeka temalı gezi senaryoları çıkarsın, yerler optimal sıraya göre haritada numaralanıp Google My Maps'e aktarılabilsin."
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">🧭</span>
+        <div>
+          <h1>Easy Travel</h1>
+          <p class="tagline">Yapay zeka destekli gezi senaryosu planlayıcı</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="panel controls">
+        <form id="search-form">
+          <div class="field">
+            <label for="city">Gideceğin şehir</label>
+            <input
+              id="city"
+              name="city"
+              type="text"
+              placeholder="Örn: Roma, Barselona, Tokyo…"
+              autocomplete="off"
+              required
+            />
+          </div>
+          <div class="field days">
+            <label for="days">Kaç gün? (opsiyonel)</label>
+            <input id="days" name="days" type="number" min="1" max="14" placeholder="3" />
+          </div>
+          <button type="submit" id="go-btn">Senaryoları oluştur</button>
+        </form>
+        <p class="hint" id="hint">
+          Bir şehir yaz — sana 4-5 temalı rota çıkarayım, her yerin gezme sırasını
+          1, 2, 3 diye numaralayıp Google Maps'e ekleyebileceğin bir dosya vereyim.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <aside class="panel scenarios" id="scenarios">
+          <div class="empty-state">
+            <p>Henüz senaryo yok.</p>
+            <p class="muted">Yukarıdan bir şehir girip başla.</p>
+          </div>
+        </aside>
+        <div class="panel map-wrap">
+          <div id="map"></div>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="/app.js"></script>
+  </body>
+</html>
