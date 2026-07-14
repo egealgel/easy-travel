@@ -5,7 +5,13 @@ import Anthropic from "@anthropic-ai/sdk";
 // Zaman aşımı yaşarsan Netlify'da TRAVEL_MODEL=claude-haiku-4-5 yap (daha hızlı & ucuz).
 const MODEL = process.env.TRAVEL_MODEL || "claude-opus-4-8";
 
-const client = new Anthropic(); // ANTHROPIC_API_KEY ortam değişkeninden okunur
+// İstemciyi tembel kur: anahtar yoksa modül yüklenirken patlamasın,
+// handler içinde net bir hata dönebilelim.
+let client;
+function getClient() {
+  if (!client) client = new Anthropic();
+  return client;
+}
 
 const SCHEMA = {
   type: "object",
@@ -85,7 +91,7 @@ export const handler = async (event) => {
 
     if (!city) return json(400, { error: "Şehir adı gerekli." });
 
-    const response = await client.messages.create({
+    const response = await getClient().messages.create({
       model: MODEL,
       max_tokens: 8000,
       messages: [{ role: "user", content: buildPrompt(city, days) }],
