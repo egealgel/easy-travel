@@ -15,24 +15,24 @@ function getClient() {
 
 function buildPrompt(city, days) {
   const dayLine = days
-    ? `Gezgin ${days} gün kalacak; senaryoları buna göre kur.`
-    : `Her senaryo tek günlük dolu bir gezi olsun.`;
-  return `Sen deneyimli bir yerel seyahat rehberisin. Şehir: "${city}". ${dayLine}
+    ? `The traveler will stay ${days} day(s); shape the scenarios accordingly.`
+    : `Make each scenario a full one-day trip.`;
+  return `You are an experienced local travel guide. City: "${city}". ${dayLine}
 
-Bu şehir için 4 FARKLI temalı gezi senaryosu üret; her senaryoda tam 5 gerçek ve ünlü yer olsun. Temalar ayrışsın (örn: klasik/turistik, yeme-içme, doğa/park, sanat/müze).
+Create 4 DISTINCT themed trip scenarios for this city; each scenario has exactly 5 real, well-known places. Themes should be clearly different (e.g. classic/sightseeing, food, nature/parks, art/museums).
 
-SADECE aşağıdaki biçimde geçerli JSON döndür. Açıklama, markdown, kod bloğu YAZMA. Tüm metinler Türkçe, açıklamalar kısa (en fazla ~8 kelime). Koordinatlar mekânın GERÇEK konumuyla eşleşsin.
+Return ONLY valid JSON in the format below. Do NOT write any explanation, markdown, or code fences. All text in English, descriptions short (max ~8 words). Coordinates must match each place's REAL location.
 
 {
-  "city": "şehir",
-  "country": "ülke",
+  "city": "city name",
+  "country": "country name",
   "scenarios": [
     {
-      "title": "kısa başlık",
-      "theme": "tema",
-      "summary": "tek cümle özet",
+      "title": "short title",
+      "theme": "theme",
+      "summary": "one-sentence summary",
       "places": [
-        { "name": "yer adı", "category": "müze/park/restoran vb", "description": "kısa açıklama", "lat": 0.0, "lng": 0.0, "duration_min": 60 }
+        { "name": "place name", "category": "museum/park/restaurant etc", "description": "short description", "lat": 0.0, "lng": 0.0, "duration_min": 60 }
       ]
     }
   ]

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>Easy Travel — Yapay Zeka Gezi Planlayıcı</title>
+    <title>easyTravel — AI Trip Planner</title>
     <meta
       name="description"
-      content="Bir şehir yaz, yapay zeka temalı gezi senaryoları çıkarsın, yerler optimal sıraya göre haritada numaralanıp Google My Maps'e aktarılabilsin."
+      content="Type a city and AI builds themed trip scenarios; places are numbered in the most efficient order on a map and exported to Google My Maps."
     />
     <link
       rel="stylesheet"
@@ -26,33 +26,33 @@
       <section class="panel controls">
         <form id="search-form">
           <div class="field">
-            <label for="city">Gideceğin şehir</label>
+            <label for="city">Destination city</label>
             <input
               id="city"
               name="city"
               type="text"
-              placeholder="Örn: Roma, Barselona, Tokyo…"
+              placeholder="e.g. Rome, Barcelona, Tokyo…"
               autocomplete="off"
               required
             />
           </div>
           <div class="field days">
-            <label for="days">Kaç gün?</label>
+            <label for="days">How many days?</label>
             <input id="days" name="days" type="number" min="1" max="14" placeholder="3" required />
           </div>
-          <button type="submit" id="go-btn">Senaryoları oluştur</button>
+          <button type="submit" id="go-btn">Generate scenarios</button>
         </form>
         <p class="hint" id="hint">
-          Şehir ve gün sayısını yaz — sana temalı rotalar çıkarayım, her yerin gezme
-          sırasını 1, 2, 3 diye numaralayıp Google Maps'e ekleyebileceğin dosya vereyim.
+          Enter a city and number of days — I'll build themed routes, number each stop
+          1, 2, 3 in the best visiting order, and give you a file to add to Google Maps.
         </p>
       </section>
 
       <section class="workspace">
         <aside class="panel scenarios" id="scenarios">
           <div class="empty-state">
-            <p>Henüz senaryo yok.</p>
-            <p class="muted">Yukarıdan bir şehir girip başla.</p>
+            <p>No scenarios yet.</p>
+            <p class="muted">Enter a city above to get started.</p>
           </div>
         </aside>
         <div class="panel map-wrap">

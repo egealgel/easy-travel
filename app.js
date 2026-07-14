@@ -1,8 +1,8 @@
-/* Easy Travel — istemci mantığı
-   - /api/generate'e şehir gönderir, senaryoları alır
-   - her senaryodaki yerleri en kısa rotaya göre sıralar (nearest neighbor + 2-opt)
-   - Leaflet haritasında numaralı pinlerle gösterir
-   - Google My Maps'e aktarılabilen KML indirir + Google Maps yön tarifi linki üretir
+/* easyTravel — client logic
+   - posts the city to /api/generate, receives scenarios
+   - reorders each scenario's places into the shortest route (nearest neighbor + 2-opt)
+   - shows them on a Leaflet map with numbered pins
+   - exports a KML for Google My Maps + builds a Google Maps directions link
 */
 
 const form = document.getElementById("search-form");
@@ -15,17 +15,17 @@ let markerLayer;
 let currentData = null;
 let activeIndex = 0;
 
-// ---------- Harita ----------
+// ---------- Map ----------
 function initMap() {
   map = L.map("map", { zoomControl: true }).setView([41.9, 12.5], 5);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
-    attribution: "&copy; OpenStreetMap katkıcıları",
+    attribution: "&copy; OpenStreetMap contributors",
   }).addTo(map);
   markerLayer = L.layerGroup().addTo(map);
 }
 
-// ---------- Mesafe & rota optimizasyonu ----------
+// ---------- Distance & route optimization ----------
 function haversine(a, b) {
   const R = 6371;
   const dLat = ((b.lat - a.lat) * Math.PI) / 180;
@@ -46,7 +46,7 @@ function routeLength(order, places) {
   return total;
 }
 
-// En yakın komşu ile başlangıç turu, ardından 2-opt ile iyileştirme.
+// Nearest-neighbor initial tour, then 2-opt improvement.
 function optimizeOrder(places) {
   const n = places.length;
   if (n <= 2) return places.map((_, i) => i);
@@ -94,7 +94,7 @@ function optimizeOrder(places) {
   return order;
 }
 
-// Her senaryoya optimize edilmiş, sıralı yer listesini ekle.
+// Attach an optimized, ordered place list to a scenario.
 function withOptimizedPlaces(scenario) {
   const order = optimizeOrder(scenario.places);
   const ordered = order.map((idx, i) => ({
@@ -105,7 +105,7 @@ function withOptimizedPlaces(scenario) {
   return { ...scenario, orderedPlaces: ordered, totalKm: km };
 }
 
-// ---------- KML üretimi (Google My Maps içe aktarımı) ----------
+// ---------- KML export (Google My Maps import) ----------
 function esc(s) {
   return String(s).replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" }[c]));
 }
@@ -115,7 +115,7 @@ function buildKml(city, scenario) {
     .map(
       (p) => `    <Placemark>
       <name>${esc(p.step + ". " + p.name)}</name>
-      <description>${esc(p.category + " • ~" + p.duration_min + " dk\n" + p.description)}</description>
+      <description>${esc(p.category + " • ~" + p.duration_min + " min\n" + p.description)}</description>
       <Point><coordinates>${p.lng},${p.lat},0</coordinates></Point>
     </Placemark>`
     )
@@ -143,10 +143,10 @@ function downloadKml(city, scenario) {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-  showToast("KML indirildi. google.com/mymaps → Yeni harita → İçe aktar ile ekleyebilirsin.");
+  showToast("KML downloaded. Add it via google.com/mymaps → New map → Import.");
 }
 
-// ---------- Google Maps yön tarifi linki ----------
+// ---------- Google Maps directions link ----------
 function gmapsDirUrl(scenario) {
   const pts = scenario.orderedPlaces.map((p) => `${p.lat},${p.lng}`).join("/");
   return `https://www.google.com/maps/dir/${pts}`;
@@ -181,7 +181,7 @@ function renderScenarios(data) {
         <div class="place-num">${p.step}</div>
         <div class="place-body">
           <div class="name">${esc(p.name)}</div>
-          <div class="meta">${esc(p.category)} • ~${p.duration_min} dk — ${esc(p.description)}</div>
+          <div class="meta">${esc(p.category)} • ~${p.duration_min} min — ${esc(p.description)}</div>
         </div>`;
       li.addEventListener("click", () => {
         activeIndex = i;
@@ -198,12 +198,12 @@ function renderScenarios(data) {
 
     const kmlBtn = document.createElement("button");
     kmlBtn.className = "btn-kml";
-    kmlBtn.textContent = "⬇ KML indir (My Maps)";
+    kmlBtn.textContent = "⬇ Download KML (My Maps)";
     kmlBtn.addEventListener("click", () => downloadKml(data.city, scenario));
 
     const gm = document.createElement("a");
     gm.className = "btn-gmaps";
-    gm.textContent = "🗺 Google Maps'te aç";
+    gm.textContent = "🗺 Open in Google Maps";
     gm.href = gmapsDirUrl(scenario);
     gm.target = "_blank";
     gm.rel = "noopener";
@@ -226,7 +226,7 @@ function drawScenario(scenario) {
       popupAnchor: [0, -30],
     });
     const m = L.marker([p.lat, p.lng], { icon }).addTo(markerLayer);
-    m.bindPopup(`<b>${p.step}. ${esc(p.name)}</b><br>${esc(p.category)} • ~${p.duration_min} dk<br>${esc(p.description)}`);
+    m.bindPopup(`<b>${p.step}. ${esc(p.name)}</b><br>${esc(p.category)} • ~${p.duration_min} min<br>${esc(p.description)}`);
     latlngs.push([p.lat, p.lng]);
   });
   if (latlngs.length > 1) {
@@ -237,7 +237,7 @@ function drawScenario(scenario) {
   }
 }
 
-// ---------- UI yardımcıları ----------
+// ---------- UI helpers ----------
 let toastTimer;
 function showToast(msg, isError = false) {
   toastEl.textContent = msg;
@@ -249,10 +249,10 @@ function showToast(msg, isError = false) {
 
 function setLoading(on) {
   goBtn.disabled = on;
-  goBtn.innerHTML = on ? '<span class="spinner"></span>Oluşturuluyor…' : "Senaryoları oluştur";
+  goBtn.innerHTML = on ? '<span class="spinner"></span>Generating…' : "Generate scenarios";
 }
 
-// ---------- Ana akış ----------
+// ---------- Main flow ----------
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const city = document.getElementById("city").value.trim();
@@ -260,7 +260,7 @@ form.addEventListener("submit", async (e) => {
   if (!city) return;
 
   setLoading(true);
-  scenariosEl.innerHTML = '<div class="empty-state"><p>Rotalar hazırlanıyor…</p><p class="muted">Yapay zeka mekanları seçip koordinatları buluyor.</p></div>';
+  scenariosEl.innerHTML = '<div class="empty-state"><p>Preparing routes…</p><p class="muted">AI is selecting places and finding coordinates.</p></div>';
 
   try {
     const res = await fetch("/api/generate", {
@@ -269,29 +269,29 @@ form.addEventListener("submit", async (e) => {
       body: JSON.stringify({ city, days: days || null }),
     });
 
-    // Yanıtı önce metin olarak al; JSON değilse anlamlı bir hata göster.
+    // Read as text first; if it isn't JSON, show a meaningful error.
     const raw = await res.text();
     let data;
     try {
       data = JSON.parse(raw);
     } catch {
-      const preview = raw.trim().slice(0, 140) || "(boş yanıt)";
+      const preview = raw.trim().slice(0, 140) || "(empty response)";
       throw new Error(
-        `Sunucu JSON yerine beklenmedik bir yanıt döndü (HTTP ${res.status}). ` +
-          `Netlify'da fonksiyon dağıtıldı mı ve ANTHROPIC_API_KEY tanımlı mı? Yanıt: ${preview}`
+        `Server returned a non-JSON response (HTTP ${res.status}). ` +
+          `Is the function deployed and ANTHROPIC_API_KEY set? Response: ${preview}`
       );
     }
-    if (!res.ok) throw new Error(data.error || `İstek başarısız oldu (HTTP ${res.status}).`);
+    if (!res.ok) throw new Error(data.error || `Request failed (HTTP ${res.status}).`);
 
     data.scenarios = data.scenarios.map(withOptimizedPlaces);
     currentData = data;
     activeIndex = 0;
     renderScenarios(data);
     if (data.scenarios[0]) drawScenario(data.scenarios[0]);
-    showToast(`${esc(data.city)}${data.country ? ", " + esc(data.country) : ""} için ${data.scenarios.length} senaryo hazır.`);
+    showToast(`${data.scenarios.length} scenarios ready for ${esc(data.city)}${data.country ? ", " + esc(data.country) : ""}.`);
   } catch (err) {
     console.error(err);
-    scenariosEl.innerHTML = `<div class="empty-state"><p>Bir sorun oldu.</p><p class="muted">${esc(err.message)}</p></div>`;
+    scenariosEl.innerHTML = `<div class="empty-state"><p>Something went wrong.</p><p class="muted">${esc(err.message)}</p></div>`;
     showToast(err.message, true);
   } finally {
     setLoading(false);

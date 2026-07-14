@@ -31,25 +31,21 @@ body {
 }
 
 .topbar {
-  padding: 16px 24px;
-  border-bottom: 1px solid var(--border);
+  padding: 18px 24px;
 }
 
 .logo {
   display: inline-flex;
   align-items: center;
-  padding: 7px 14px;
-  border-radius: 10px;
-  background: var(--accent);
-  color: #06202e;
   font-weight: 800;
-  font-size: 18px;
+  font-size: 22px;
   letter-spacing: 0.2px;
+  color: var(--accent);
 }
 
 .logo span {
-  font-weight: 500;
-  opacity: 0.8;
+  color: var(--text);
+  font-weight: 600;
 }
 
 .container {
@@ -65,7 +61,6 @@ body {
 
 .panel {
   background: var(--panel);
-  border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: var(--shadow);
 }
@@ -184,7 +179,6 @@ button:disabled {
 }
 
 .scenario-card {
-  border: 1px solid var(--border);
   border-radius: 12px;
   margin-bottom: 14px;
   overflow: hidden;
@@ -192,8 +186,7 @@ button:disabled {
 }
 
 .scenario-card.active {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent) inset;
+  box-shadow: 0 0 0 2px var(--accent) inset;
 }
 
 .scenario-head {
