@@ -268,8 +268,20 @@ form.addEventListener("submit", async (e) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ city, days: days || null }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "İstek başarısız oldu.");
+
+    // Yanıtı önce metin olarak al; JSON değilse anlamlı bir hata göster.
+    const raw = await res.text();
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      const preview = raw.trim().slice(0, 140) || "(boş yanıt)";
+      throw new Error(
+        `Sunucu JSON yerine beklenmedik bir yanıt döndü (HTTP ${res.status}). ` +
+          `Netlify'da fonksiyon dağıtıldı mı ve ANTHROPIC_API_KEY tanımlı mı? Yanıt: ${preview}`
+      );
+    }
+    if (!res.ok) throw new Error(data.error || `İstek başarısız oldu (HTTP ${res.status}).`);
 
     data.scenarios = data.scenarios.map(withOptimizedPlaces);
     currentData = data;
