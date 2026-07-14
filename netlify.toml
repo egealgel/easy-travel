@@ -9,3 +9,9 @@
   from = "/api/generate"
   to = "/.netlify/functions/generate"
   status = 200
+
+# Arama motorlarına tamamen kapat (her yanıt için noindex başlığı).
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
