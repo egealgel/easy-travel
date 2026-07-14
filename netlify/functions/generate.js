@@ -1,73 +1,52 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-// Model, Netlify ortam değişkeninden değiştirilebilir (kod değişmeden).
-// Not: Netlify ücretsiz planında senkron fonksiyonlar ~10 sn'de kesilir.
-// Zaman aşımı yaşarsan Netlify'da TRAVEL_MODEL=claude-haiku-4-5 yap (daha hızlı & ucuz).
-const MODEL = process.env.TRAVEL_MODEL || "claude-opus-4-8";
+// Netlify ücretsiz planı senkron fonksiyonları ~10 sn'de keser. O yüzden:
+// - hızlı model (haiku) varsayılan
+// - yapısal çıktı yok (ilk çağrıdaki şema derleme gecikmesini önler)
+// - küçük çıktı + düşük max_tokens
+// İstersen Netlify env'inden TRAVEL_MODEL ile modeli değiştirebilirsin.
+const MODEL = process.env.TRAVEL_MODEL || "claude-haiku-4-5";
 
-// İstemciyi tembel kur: anahtar yoksa modül yüklenirken patlamasın,
-// handler içinde net bir hata dönebilelim.
 let client;
 function getClient() {
   if (!client) client = new Anthropic();
   return client;
 }
 
-const SCHEMA = {
-  type: "object",
-  properties: {
-    city: { type: "string" },
-    country: { type: "string" },
-    scenarios: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          title: { type: "string", description: "Kısa, çekici senaryo başlığı" },
-          theme: { type: "string", description: "Örn: Klasik & Turistik, Yeme-İçme, Doğa, Sanat, Gece" },
-          summary: { type: "string", description: "Senaryonun bir cümlelik özeti" },
-          places: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                name: { type: "string" },
-                category: { type: "string", description: "Örn: müze, park, restoran, meydan, cami" },
-                description: { type: "string", description: "Neden gidilmeli, tek cümle" },
-                lat: { type: "number", description: "Enlem (WGS84)" },
-                lng: { type: "number", description: "Boylam (WGS84)" },
-                duration_min: { type: "integer", description: "Tahmini gezme süresi (dakika)" },
-              },
-              required: ["name", "category", "description", "lat", "lng", "duration_min"],
-              additionalProperties: false,
-            },
-          },
-        },
-        required: ["title", "theme", "summary", "places"],
-        additionalProperties: false,
-      },
-    },
-  },
-  required: ["city", "country", "scenarios"],
-  additionalProperties: false,
-};
-
 function buildPrompt(city, days) {
   const dayLine = days
-    ? `Gezgin ${days} gün kalacak; senaryoları buna uygun kur ve gerekiyorsa günlere böl.`
-    : `Gün sayısı belirtilmedi; her senaryoyu tek günlük dolu bir gezi gibi kur.`;
-  return `Sen deneyimli bir yerel seyahat rehberisin. Şehir: "${city}".
+    ? `Gezgin ${days} gün kalacak; senaryoları buna göre kur.`
+    : `Her senaryo tek günlük dolu bir gezi olsun.`;
+  return `Sen deneyimli bir yerel seyahat rehberisin. Şehir: "${city}". ${dayLine}
 
-${dayLine}
+Bu şehir için 4 FARKLI temalı gezi senaryosu üret; her senaryoda tam 5 gerçek ve ünlü yer olsun. Temalar ayrışsın (örn: klasik/turistik, yeme-içme, doğa/park, sanat/müze).
 
-Görev: Bu şehir için 4-5 FARKLI temalı gezi senaryosu üret. Her senaryoda 5-8 gerçek, ünlü ve gerçekten var olan gezilecek yer olsun. Temalar birbirinden belirgin şekilde ayrışsın (örn: klasik/turistik, yeme-içme & yerel yaşam, doğa/park/manzara, sanat & müze, alışveriş/gece hayatı).
+SADECE aşağıdaki biçimde geçerli JSON döndür. Açıklama, markdown, kod bloğu YAZMA. Tüm metinler Türkçe, açıklamalar kısa (en fazla ~8 kelime). Koordinatlar mekânın GERÇEK konumuyla eşleşsin.
 
-Kurallar:
-- Sadece GERÇEK, tanınmış mekanlar kullan. Yer uydurma.
-- Her yer için DOĞRU enlem/boylam (lat/lng) ver. Koordinatlar mekânın gerçek konumuyla eşleşmeli.
-- Her senaryodaki yerler coğrafi olarak makul bir günde gezilebilecek yakınlıkta olsun.
-- Açıklamalar Türkçe, kısa ve net olsun.
-- Şehrin bulunduğu ülkeyi de belirt.`;
+{
+  "city": "şehir",
+  "country": "ülke",
+  "scenarios": [
+    {
+      "title": "kısa başlık",
+      "theme": "tema",
+      "summary": "tek cümle özet",
+      "places": [
+        { "name": "yer adı", "category": "müze/park/restoran vb", "description": "kısa açıklama", "lat": 0.0, "lng": 0.0, "duration_min": 60 }
+      ]
+    }
+  ]
+}`;
+}
+
+// Model bazen kod bloğu/önsöz ekleyebilir; ilk { ile son } arasını al.
+function extractJson(text) {
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start === -1 || end === -1 || end < start) {
+    throw new Error("Yanıt içinde JSON bulunamadı.");
+  }
+  return JSON.parse(text.slice(start, end + 1));
 }
 
 const json = (statusCode, obj) => ({
@@ -88,14 +67,12 @@ export const handler = async (event) => {
     const body = JSON.parse(event.body || "{}");
     const city = (body.city || "").toString().trim();
     const days = body.days ? parseInt(body.days, 10) : null;
-
     if (!city) return json(400, { error: "Şehir adı gerekli." });
 
     const response = await getClient().messages.create({
       model: MODEL,
-      max_tokens: 8000,
+      max_tokens: 3000,
       messages: [{ role: "user", content: buildPrompt(city, days) }],
-      output_config: { format: { type: "json_schema", schema: SCHEMA } },
     });
 
     if (response.stop_reason === "refusal") {
@@ -105,7 +82,7 @@ export const handler = async (event) => {
     const textBlock = response.content.find((b) => b.type === "text");
     if (!textBlock) return json(502, { error: "Modelden metin yanıtı alınamadı." });
 
-    return json(200, JSON.parse(textBlock.text));
+    return json(200, extractJson(textBlock.text));
   } catch (err) {
     console.error(err);
     const status = err?.status && Number.isInteger(err.status) ? err.status : 500;
