@@ -5,10 +5,6 @@ her senaryodaki yerler **en kısa rotaya göre 1-2-3 diye numaralanıp** haritad
 gösterilsin → tek tıkla **Google My Maps'e aktarılabilen bir KML dosyası** indir
 veya **Google Maps yön tarifini** aç.
 
-![stack](https://img.shields.io/badge/stack-HTML%2FCSS%2FJS-informational)
-![map](https://img.shields.io/badge/harita-Leaflet%20%2B%20OpenStreetMap-success)
-![ai](https://img.shields.io/badge/AI-Claude-blueviolet)
-![deploy](https://img.shields.io/badge/deploy-Netlify-teal)
 
 ## Ne yapıyor?
 
